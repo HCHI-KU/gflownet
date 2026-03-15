@@ -1,18 +1,22 @@
 #!/usr/bin/env python3
 """
-Minimal GFlowNet debugging runner for BBH5 tasks.
+Minimal GFlowNet debugging runner for BBH tasks.
 
 This script removes queue/offline-conditioning/m-step logic and keeps only:
 1. fixed meta prompt + fixed few-shot context
 2. prompt sampling from the policy
-3. train accuracy reward measured with the repo-local BBH reasoning evaluator
+3. train accuracy reward measured with bbh_vllm_eval-style evaluation
 4. Trajectory Balance update on the prompt policy
+
+Outputs include per-step metrics and prompt payloads that can be loaded by
+bbh_vllm_eval/main.py via --meta_prompt_file.
 """
 
 from __future__ import annotations
 
 import argparse
 import html
+import importlib.util
 import json
 import os
 import random
@@ -44,21 +48,28 @@ except ImportError:
     wandb = None
 
 REPO_ROOT = Path(__file__).resolve().parent
+BBH_EVAL_ROOT = REPO_ROOT / "bbh_vllm_eval"
+if not BBH_EVAL_ROOT.exists():
+    BBH_EVAL_ROOT = REPO_ROOT.parent / "bbh_vllm_eval"
 
 if str(REPO_ROOT) not in sys.path:
     sys.path.insert(0, str(REPO_ROOT))
 
-from junmo.bbh_eval_gfnpo import (
-    ANSWER_EXTRACTION_STOPS,
-    BBH5_TASKS,
-    canonicalize_bbh_task,
-    evaluate_prompts_chunked_bbh5_gfnpo,
-    extract_bbh5_inputs_and_targets,
-)
-from junmo.dataset_utils import load_bigbench
 from junmo.utils import JsonlLogger, load_eval_model_config, seed
 
-SUPPORTED_TASKS = tuple(sorted(BBH5_TASKS))
+
+def _load_bbh_eval_utils():
+    module_path = BBH_EVAL_ROOT / "utils.py"
+    spec = importlib.util.spec_from_file_location("bbh_eval_utils", module_path)
+    if spec is None or spec.loader is None:
+        raise ImportError(f"Failed to load bbh_vllm_eval utils from {module_path}")
+    module = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(module)
+    return module
+
+
+bbh_eval_utils = _load_bbh_eval_utils()
+SUPPORTED_TASKS = tuple(bbh_eval_utils.SUPPORTED_TASKS)
 
 
 class TopAccuracyTextsNoDuplicates:
@@ -91,46 +102,36 @@ class TopAccuracyTextsNoDuplicates:
 
 @dataclass
 class TaskData:
-    train_dataset: Any
-    test_dataset: Any
-    verbalizer: Any
-    metrics: str
-    task_prefix: str
     train_goals: List[str]
     train_final_targets: List[str]
     test_goals: List[str]
     test_final_targets: List[str]
 
+
+def default_data_root() -> str:
+    return str((BBH_EVAL_ROOT / "data" / "GreaTer_data" / "BBH").resolve())
+
+
 def load_task_data(
     task_name: str,
+    data_root: str,
+    conversation_template: str,
     n_train_data: int,
     n_test_data: int,
-    n_test_offset: int | None,
 ) -> TaskData:
-    canonical_task = canonicalize_bbh_task(task_name)
-    resolved_test_size = None if n_test_data is None or n_test_data < 0 else n_test_data
-    metrics, train_dataset, test_dataset, verbalizer, task_prefix = load_bigbench(
-        canonical_task,
-        train_size=n_train_data,
-        test_size=resolved_test_size,
-        test_offset=n_test_offset,
-    )
-    train_goals, train_final_targets = extract_bbh5_inputs_and_targets(
-        dataset=train_dataset,
-        task_name=canonical_task,
-        verbalizer=verbalizer,
-    )
-    test_goals, test_final_targets = extract_bbh5_inputs_and_targets(
-        dataset=test_dataset,
-        task_name=canonical_task,
-        verbalizer=verbalizer,
+    data_file = Path(data_root) / f"{task_name}.json"
+    if not data_file.exists():
+        raise FileNotFoundError(f"Missing BBH task file: {data_file}")
+
+    extractor_text = bbh_eval_utils.TASK_EXTRACTOR_TEXT[task_name]
+    train_goals, _, test_goals, _, train_final_targets, test_final_targets = bbh_eval_utils.get_goals_and_targets(
+        data_path=str(data_file),
+        extractor_text=extractor_text,
+        conversation_template_name=conversation_template,
+        n_train_data=n_train_data,
+        n_test_data=n_test_data,
     )
     return TaskData(
-        train_dataset=train_dataset,
-        test_dataset=test_dataset,
-        verbalizer=verbalizer,
-        metrics=str(metrics),
-        task_prefix=str(task_prefix),
         train_goals=list(train_goals),
         train_final_targets=list(train_final_targets),
         test_goals=list(test_goals),
@@ -175,38 +176,78 @@ def save_json(path: Path, payload: Any) -> None:
     with path.open("w", encoding="utf-8") as f:
         json.dump(payload, f, ensure_ascii=False, indent=2)
 
+
+def _compose_user_content(goal: str, control: str) -> str:
+    goal = str(goal)
+    control = str(control).lstrip()
+    if not control:
+        return goal
+    return f"{goal} {control}"
+
+
 @torch.inference_mode()
 def evaluate_prompts_with_bbh_eval(
     llm: Any,
     task_name: str,
     prompts: Sequence[str],
-    dataset: Any,
-    verbalizer: Any,
+    goals: Sequence[str],
+    final_targets: Sequence[str],
     reasoning_params: Any,
     answer_params: Any,
     chunk_size: int,
-    reasoning_max_tokens: int,
-    answer_max_tokens: int,
 ) -> torch.Tensor:
-    return evaluate_prompts_chunked_bbh5_gfnpo(
-        prompts=prompts,
-        dataset=dataset,
-        model=llm,
-        task_name=canonicalize_bbh_task(task_name),
-        verbalizer=verbalizer,
-        chunk_size=chunk_size,
-        reasoning_max_tokens=reasoning_max_tokens,
-        answer_max_tokens=answer_max_tokens,
-        reasoning_params=reasoning_params,
-        answer_params=answer_params,
-    )
+    num_prompts = len(prompts)
+    if num_prompts == 0:
+        return torch.zeros(0, dtype=torch.float32)
+
+    dataset_len = len(goals)
+    if dataset_len == 0:
+        return torch.zeros(num_prompts, dtype=torch.float32)
+
+    extractor_text = bbh_eval_utils.TASK_EXTRACTOR_TEXT[task_name]
+    normalized_targets = [
+        bbh_eval_utils.remove_parentheses_if_single_char(str(target).strip())
+        for target in final_targets
+    ]
+    correct = torch.zeros(num_prompts, dtype=torch.long)
+    total = num_prompts * dataset_len
+    chunk_size = max(1, int(chunk_size))
+
+    for start in range(0, total, chunk_size):
+        end = min(total, start + chunk_size)
+        stage1_prompts: List[str] = []
+        pairs: List[tuple[int, int]] = []
+
+        for global_idx in range(start, end):
+            prompt_idx = global_idx // dataset_len
+            data_idx = global_idx % dataset_len
+            user_content = _compose_user_content(goals[data_idx], prompts[prompt_idx])
+            stage1_prompts.append(bbh_eval_utils.render_llama3_user_prompt(user_content))
+            pairs.append((prompt_idx, data_idx))
+
+        reasoning_outputs = llm.generate(stage1_prompts, reasoning_params, use_tqdm=False)
+        reasonings = [out.outputs[0].text if out.outputs else "" for out in reasoning_outputs]
+
+        extractor_prompts = [
+            bbh_eval_utils.render_extractor_prompt_llama3(stage1_prompt, reasoning, extractor_text)
+            for stage1_prompt, reasoning in zip(stage1_prompts, reasonings)
+        ]
+        answer_outputs = llm.generate(extractor_prompts, answer_params, use_tqdm=False)
+
+        for idx, output in enumerate(answer_outputs):
+            prompt_idx, data_idx = pairs[idx]
+            raw_answer = output.outputs[0].text if output.outputs else ""
+            normalized_answer = bbh_eval_utils.remove_parentheses_if_single_char(str(raw_answer).strip())
+            if normalized_answer == normalized_targets[data_idx]:
+                correct[prompt_idx] += 1
+
+    return correct.float() / float(dataset_len)
 
 
 class DebuggingGFlowNetRunner:
     def __init__(self, args: argparse.Namespace, task_name: str, run_root: Path):
         self.args = args
         self.task_name = task_name
-        self.canonical_task_name = canonicalize_bbh_task(task_name)
         self.run_root = run_root
         self.task_root = run_root / task_name
         self.logs_root = self.task_root / "logs"
@@ -220,9 +261,10 @@ class DebuggingGFlowNetRunner:
 
         self.task_data = load_task_data(
             task_name=task_name,
+            data_root=args.data_root,
+            conversation_template=args.conversation_template,
             n_train_data=args.bbh_train_size,
             n_test_data=args.bbh_test_size,
-            n_test_offset=args.bbh_test_offset,
         )
         if args.beta is None:
             args.beta = 1.0 / float(len(self.task_data.train_goals))
@@ -336,7 +378,7 @@ class DebuggingGFlowNetRunner:
             temperature=0.0,
             top_p=eval_top_p,
             max_tokens=self.args.bbh_answer_max_tokens,
-            stop=ANSWER_EXTRACTION_STOPS,
+            stop=bbh_eval_utils.ANSWER_EXTRACTION_STOPS,
         )
 
     def _init_wandb(self) -> None:
@@ -390,8 +432,6 @@ class DebuggingGFlowNetRunner:
             "policy_input_preview": self.policy_input_preview,
             "train_size": len(self.task_data.train_goals),
             "test_size": len(self.task_data.test_goals),
-            "task_prefix": self.task_data.task_prefix,
-            "metrics": self.task_data.metrics,
             "created_at": time.strftime("%Y-%m-%d %H:%M:%S"),
         }
         save_json(self.task_root / "config.json", config_payload)
@@ -493,15 +533,13 @@ class DebuggingGFlowNetRunner:
     def _evaluate_train_accs(self, prompts: Sequence[str]) -> torch.Tensor:
         return evaluate_prompts_with_bbh_eval(
             llm=self.llm,
-            task_name=self.canonical_task_name,
+            task_name=self.task_name,
             prompts=prompts,
-            dataset=self.task_data.train_dataset,
-            verbalizer=self.task_data.verbalizer,
+            goals=self.task_data.train_goals,
+            final_targets=self.task_data.train_final_targets,
             reasoning_params=self.reasoning_params,
             answer_params=self.answer_params,
             chunk_size=self.args.eval_chunk_size,
-            reasoning_max_tokens=self.args.bbh_reasoning_max_tokens,
-            answer_max_tokens=self.args.bbh_answer_max_tokens,
         )
 
     def _evaluate_test_prompt(self, prompt: str) -> float:
@@ -509,15 +547,13 @@ class DebuggingGFlowNetRunner:
             return 0.0
         acc = evaluate_prompts_with_bbh_eval(
             llm=self.llm,
-            task_name=self.canonical_task_name,
+            task_name=self.task_name,
             prompts=[prompt],
-            dataset=self.task_data.test_dataset,
-            verbalizer=self.task_data.verbalizer,
+            goals=self.task_data.test_goals,
+            final_targets=self.task_data.test_final_targets,
             reasoning_params=self.reasoning_params,
             answer_params=self.answer_params,
             chunk_size=self.args.eval_chunk_size,
-            reasoning_max_tokens=self.args.bbh_reasoning_max_tokens,
-            answer_max_tokens=self.args.bbh_answer_max_tokens,
         )
         return float(acc[0].item()) if len(acc) > 0 else 0.0
 
@@ -783,7 +819,7 @@ class DebuggingGFlowNetRunner:
 
 
 def parse_args() -> argparse.Namespace:
-    parser = argparse.ArgumentParser(description="Minimal GFlowNet debugger for BBH5 prompt training")
+    parser = argparse.ArgumentParser(description="Minimal GFlowNet debugger for BBH prompt training")
     parser.add_argument("--task_names", type=str, nargs="+", default=["object_counting"])
     parser.add_argument("--agent_model", type=str, default="meta-llama/Meta-Llama-3-8B-Instruct")
     parser.add_argument("--eval_model", type=str, default="meta-llama/Meta-Llama-3-8B-Instruct")
@@ -820,10 +856,11 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--fewshot_seed", type=int, default=42)
     parser.add_argument("--fewshot_indices", type=str, default="")
 
+    parser.add_argument("--data_root", type=str, default=default_data_root())
+    parser.add_argument("--conversation_template", type=str, default="llama-3")
     parser.add_argument("--bbh_train_size", type=int, default=50)
     parser.add_argument("--bbh_test_size", type=int, default=100)
-    parser.add_argument("--bbh_test_offset", type=int, default=None)
-    parser.add_argument("--bbh_reasoning_max_tokens", type=int, default=50)
+    parser.add_argument("--bbh_reasoning_max_tokens", type=int, default=1024)
     parser.add_argument("--bbh_answer_max_tokens", type=int, default=1)
     parser.add_argument("--eval_chunk_size", type=int, default=64)
 
@@ -848,7 +885,7 @@ def main() -> None:
     args = parse_args()
     os.environ.setdefault("VLLM_USE_V1", "0")
 
-    unknown_tasks = sorted({task for task in args.task_names if canonicalize_bbh_task(task) not in BBH5_TASKS})
+    unknown_tasks = sorted(set(args.task_names) - set(SUPPORTED_TASKS))
     if unknown_tasks:
         raise ValueError(f"Unsupported tasks: {unknown_tasks}. Supported: {sorted(SUPPORTED_TASKS)}")
 

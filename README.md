@@ -1,9 +1,6 @@
 # GFlowPO BBH Debugging
 
-BBH 5-task 기준으로 GFlowPO와 `debugging_gflownet.py`를 함께 비교할 수 있게 정리한 독립 실행형 저장소다. 목표는 다음 두 가지다.
-
-- full GFlowPO BBH5 runner를 그대로 재현
-- fixed meta prompt + fixed 5-shot에서 prompt policy만 학습하는 `debugging_gflownet.py`를 별도로 실행
+BBH 5-task 기준으로 GFlowPO와 `debugging_gflownet.py`를 함께 비교하기 위한 저장소다. 특히 `debugging_gflownet.py`는 로컬에서 쓰던 `bbh_vllm_eval/GreaTer_data/BBH` 프로토콜을 그대로 사용한다.
 
 ## Environment
 
@@ -25,7 +22,9 @@ pip install -r requirements.txt
 
 ## Repository Layout
 
-- `debugging_gflownet.py`: fixed-context GFlowNet debugger
+- `debugging_gflownet.py`: `bbh_vllm_eval` 기반 fixed-context GFlowNet debugger
+- `bbh_vllm_eval/utils.py`: debugging evaluator가 직접 읽는 유틸
+- `bbh_vllm_eval/data/GreaTer_data/BBH`: debugging run에 사용한 BBH task json
 - `junmo/train.py`: 학습 엔트리포인트
 - `junmo/trainer/gfn_em_ema_revision.py`: GFlowPO trainer
 - `junmo/dataset_utils.py`: BBH split/data loader
@@ -40,7 +39,7 @@ pip install -r requirements.txt
 
 - fixed meta prompt
 - fixed 5-shot examples
-- BBH train accuracy reward
+- `bbh_vllm_eval/data/GreaTer_data/BBH` 기준 BBH train accuracy reward
 - TB loss update
 
 예시:
