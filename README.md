@@ -56,6 +56,12 @@ python debugging_gflownet.py \
   --run_name object_counting_debug
 ```
 
+300-step object_counting 재현용 exact run script:
+
+```bash
+bash scripts/run_object_counting_step300.sh
+```
+
 주요 출력:
 
 - `debugging_gflownet_runs/<run_name>/<task>/config.json`
