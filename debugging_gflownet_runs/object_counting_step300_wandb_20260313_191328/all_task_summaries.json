@@ -1,0 +1,10 @@
+[
+  {
+    "task_name": "object_counting",
+    "best_train_acc": 0.8600000143051147,
+    "best_prompt": "assistant\n\nThe instruction states that the output is the sum of 4: namely:\n\n3 outputs I provided\n\nLet me compute the answer\nLet the input sets respectively I gave to him is represented by xI. A is represented by an A, A represents a set\n\nHere are 3 instances when that friend of you I provided: a friend provided him input.\n\nThen these instances:",
+    "best_prompt_step": 39,
+    "num_top_prompts": 5,
+    "best_prompt_test_acc": 0.6700000166893005
+  }
+]
