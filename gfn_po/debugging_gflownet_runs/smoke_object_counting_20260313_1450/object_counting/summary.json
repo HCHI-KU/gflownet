@@ -1,0 +1,8 @@
+{
+  "task_name": "object_counting",
+  "best_train_acc": 0.699999988079071,
+  "best_prompt": "assistant\n\nBased on the input-output pairs, it seems that the instruction is to count the number of items of a specific type (e.g. musical instruments, fruits, objects).",
+  "best_prompt_step": 3,
+  "num_top_prompts": 3,
+  "best_prompt_test_acc": 0.6000000238418579
+}

@@ -1,0 +1,38 @@
+{
+  "task_name": "object_counting",
+  "generated_at": "2026-03-13 15:49:28",
+  "generation_config": {
+    "source": "debugging_gflownet",
+    "requested_num_prompts": 5,
+    "actual_num_prompts": 5,
+    "fewshot_indices": [
+      0,
+      1,
+      2,
+      3,
+      4
+    ]
+  },
+  "prompts": [
+    {
+      "name": "Debug-01",
+      "prompt": "assistant\n\nIt seems that the instruction you gave is to count the number of items for a given list of items or \"inputs\"."
+    },
+    {
+      "name": "Debug-02",
+      "prompt": "assistant\n\nBased on the input-output pairs, it seems that the instruction is to count the number of items of a specific type (e.g. musical instruments, fruits, objects)."
+    },
+    {
+      "name": "Debug-03",
+      "prompt": "assistant\n\n\"Count the number of [something] I have.\"\n\nThe [something] can be musical instruments, fruits, objects, etc.\n\nYour friend has been applying this instruction to each of the input-output pairs."
+    },
+    {
+      "name": "Debug-04",
+      "prompt": "assistant\n\nThe instruction is: \"How many [X] do I have?\" where [X] is something that can be counted."
+    },
+    {
+      "name": "Debug-05",
+      "prompt": "assistant\n\nHow many [something] do I have?. The \"something\" can be anything, and the instruction is asking for a count of how many of that \"something\" you have."
+    }
+  ]
+}

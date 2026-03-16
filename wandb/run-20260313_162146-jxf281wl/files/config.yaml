@@ -1,0 +1,55 @@
+_wandb:
+    value:
+        cli_version: 0.25.0
+        e:
+            tkz62poozdh40li7m9hnwekizbkc4ho3:
+                cpu_count: 80
+                cpu_count_logical: 160
+                cudaVersion: "13.0"
+                disk:
+                    /:
+                        total: "1887976378368"
+                        used: "172154949632"
+                email: daniel159617@gmail.com
+                executable: /usr/bin/python3
+                gpu: NVIDIA RTX A6000
+                gpu_count: 4
+                gpu_nvidia:
+                    - architecture: Ampere
+                      cudaCores: 10752
+                      memoryTotal: "48305799168"
+                      name: NVIDIA RTX A6000
+                      uuid: GPU-4b7717e1-4ea9-ee46-0f5f-51455243eaab
+                    - architecture: Ampere
+                      cudaCores: 10752
+                      memoryTotal: "51527024640"
+                      name: NVIDIA RTX A6000
+                      uuid: GPU-64112c46-9530-0800-4f61-554dfe6f9b10
+                    - architecture: Ampere
+                      cudaCores: 10752
+                      memoryTotal: "48305799168"
+                      name: NVIDIA RTX A6000
+                      uuid: GPU-14ed2112-f112-a96d-b8ff-a2224685f274
+                    - architecture: Ampere
+                      cudaCores: 10752
+                      memoryTotal: "48305799168"
+                      name: NVIDIA RTX A6000
+                      uuid: GPU-cfa066c9-3222-0107-a968-d02890d3975b
+                host: main1
+                memory:
+                    total: "1622999879680"
+                os: Linux-6.14.0-37-generic-x86_64-with-glibc2.35
+                program: <stdin>
+                python: CPython 3.12.12
+                root: /home/work/jihun
+                startedAt: "2026-03-13T07:21:46.374384Z"
+                writerId: tkz62poozdh40li7m9hnwekizbkc4ho3
+        m: []
+        python_version: 3.12.12
+        t:
+            "3":
+                - 2
+            "4": 3.12.12
+            "5": 0.25.0
+            "12": 0.25.0
+            "13": linux-x86_64

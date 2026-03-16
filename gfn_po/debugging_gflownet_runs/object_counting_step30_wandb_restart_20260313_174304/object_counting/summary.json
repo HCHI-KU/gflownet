@@ -1,0 +1,8 @@
+{
+  "task_name": "object_counting",
+  "best_train_acc": 0.7799999713897705,
+  "best_prompt": "assistant\n\nIt seems that the instruction is asking for a count of a specific type of item. In each of the given examples, the friend was asked to count the number of items that fit into a particular category.",
+  "best_prompt_step": 24,
+  "num_top_prompts": 5,
+  "best_prompt_test_acc": 0.6800000071525574
+}

@@ -1,0 +1,22 @@
+{
+  "task_name": "object_counting",
+  "generated_at": "2026-03-13 16:25:34",
+  "generation_config": {
+    "source": "debugging_gflownet",
+    "requested_num_prompts": 1,
+    "actual_num_prompts": 1,
+    "fewshot_indices": [
+      0,
+      1,
+      2,
+      3,
+      4
+    ]
+  },
+  "prompts": [
+    {
+      "name": "Debug-01",
+      "prompt": "assistant\n\nIt seems like the instruction is a \"How many [something] do I have?\" prompt, and you want to count the number of items in a list."
+    }
+  ]
+}

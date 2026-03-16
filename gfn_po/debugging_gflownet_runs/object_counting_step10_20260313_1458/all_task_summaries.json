@@ -1,0 +1,10 @@
+[
+  {
+    "task_name": "object_counting",
+    "best_train_acc": 0.7599999904632568,
+    "best_prompt": "assistant\n\nIt seems that the instruction you gave is to count the number of items for a given list of items or \"inputs\".",
+    "best_prompt_step": 7,
+    "num_top_prompts": 5,
+    "best_prompt_test_acc": 0.6600000262260437
+  }
+]

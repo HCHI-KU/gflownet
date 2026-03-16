@@ -1,0 +1,10 @@
+[
+  {
+    "task_name": "object_counting",
+    "best_train_acc": 0.6000000238418579,
+    "best_prompt": "assistant\n\nIt seems like the instruction is a \"How many [something] do I have?\" prompt, and you want to count the number of items in a list.",
+    "best_prompt_step": 1,
+    "num_top_prompts": 1,
+    "best_prompt_test_acc": 0.800000011920929
+  }
+]

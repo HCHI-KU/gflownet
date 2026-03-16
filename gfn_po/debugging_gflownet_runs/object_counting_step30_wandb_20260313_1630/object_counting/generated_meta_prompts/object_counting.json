@@ -1,0 +1,38 @@
+{
+  "task_name": "object_counting",
+  "generated_at": "2026-03-13 17:37:12",
+  "generation_config": {
+    "source": "debugging_gflownet",
+    "requested_num_prompts": 5,
+    "actual_num_prompts": 5,
+    "fewshot_indices": [
+      0,
+      1,
+      2,
+      3,
+      4
+    ]
+  },
+  "prompts": [
+    {
+      "name": "Debug-01",
+      "prompt": "assistant\n\nThe instruction is likely to be \"Count the number of [something] I have\"."
+    },
+    {
+      "name": "Debug-02",
+      "prompt": "assistant\n\nTo count the number of given objects, whether they are musical instruments, fruits, or other objects."
+    },
+    {
+      "name": "Debug-03",
+      "prompt": "assistant\n\n\"Count the number of [something] I have.\"\n\nAnd the [something] to be counted varies depending on the input!"
+    },
+    {
+      "name": "Debug-04",
+      "prompt": "assistant\n\nI think I can spot the pattern!\n\nThe instruction is to count the number of a specific type of object (in this case, musical instruments, fruits, or objects) given a list of them."
+    },
+    {
+      "name": "Debug-05",
+      "prompt": "assistant\n\nBased on the input-output pairs, it seems that the instruction is to count the number of items of a specific type (e.g. musical instruments, fruits, objects)."
+    }
+  ]
+}

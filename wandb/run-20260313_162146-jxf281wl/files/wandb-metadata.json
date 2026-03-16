@@ -1,0 +1,55 @@
+{
+  "os":  "Linux-6.14.0-37-generic-x86_64-with-glibc2.35",
+  "python":  "CPython 3.12.12",
+  "startedAt":  "2026-03-13T07:21:46.374384Z",
+  "program":  "<stdin>",
+  "email":  "daniel159617@gmail.com",
+  "root":  "/home/work/jihun",
+  "host":  "main1",
+  "executable":  "/usr/bin/python3",
+  "cpu_count":  80,
+  "cpu_count_logical":  160,
+  "gpu":  "NVIDIA RTX A6000",
+  "gpu_count":  4,
+  "disk":  {
+    "/":  {
+      "total":  "1887976378368",
+      "used":  "172154949632"
+    }
+  },
+  "memory":  {
+    "total":  "1622999879680"
+  },
+  "gpu_nvidia":  [
+    {
+      "name":  "NVIDIA RTX A6000",
+      "memoryTotal":  "48305799168",
+      "cudaCores":  10752,
+      "architecture":  "Ampere",
+      "uuid":  "GPU-4b7717e1-4ea9-ee46-0f5f-51455243eaab"
+    },
+    {
+      "name":  "NVIDIA RTX A6000",
+      "memoryTotal":  "51527024640",
+      "cudaCores":  10752,
+      "architecture":  "Ampere",
+      "uuid":  "GPU-64112c46-9530-0800-4f61-554dfe6f9b10"
+    },
+    {
+      "name":  "NVIDIA RTX A6000",
+      "memoryTotal":  "48305799168",
+      "cudaCores":  10752,
+      "architecture":  "Ampere",
+      "uuid":  "GPU-14ed2112-f112-a96d-b8ff-a2224685f274"
+    },
+    {
+      "name":  "NVIDIA RTX A6000",
+      "memoryTotal":  "48305799168",
+      "cudaCores":  10752,
+      "architecture":  "Ampere",
+      "uuid":  "GPU-cfa066c9-3222-0107-a968-d02890d3975b"
+    }
+  ],
+  "cudaVersion":  "13.0",
+  "writerId":  "tkz62poozdh40li7m9hnwekizbkc4ho3"
+}
