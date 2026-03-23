@@ -3,6 +3,7 @@ set -euo pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 REPO_DIR="$(cd "$SCRIPT_DIR/.." && pwd)"
+source "$SCRIPT_DIR/source_workspace_env.sh"
 cd "$REPO_DIR"
 
 export PYTHONPATH="$REPO_DIR:${PYTHONPATH:-}"

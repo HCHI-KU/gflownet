@@ -2,12 +2,13 @@
 set -uo pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+source "$SCRIPT_DIR/scripts/source_workspace_env.sh"
 cd "$SCRIPT_DIR"
 
-if [ -f "/home/work/jaeyoon/tools/anaconda3/etc/profile.d/conda.sh" ]; then
-  source "/home/work/jaeyoon/tools/anaconda3/etc/profile.d/conda.sh"
-elif [ -f "$HOME/miniconda3/etc/profile.d/conda.sh" ]; then
-  source "$HOME/miniconda3/etc/profile.d/conda.sh"
+if [ -f "/home/work/GFlowPO/anaconda3/etc/profile.d/conda.sh" ]; then
+  source "/home/work/GFlowPO/anaconda3/etc/profile.d/conda.sh"
+elif [ -f "${ORIGINAL_HOME:-$HOME}/miniconda3/etc/profile.d/conda.sh" ]; then
+  source "${ORIGINAL_HOME:-$HOME}/miniconda3/etc/profile.d/conda.sh"
 elif command -v conda >/dev/null 2>&1; then
   source "$(conda info --base)/etc/profile.d/conda.sh"
 fi
@@ -15,8 +16,8 @@ fi
 export CONDA_NO_PLUGINS=true
 conda activate rd_test
 
-export HF_HOME=/home/work/jaeyoon/.hf_cache
-export HUGGINGFACE_HUB_CACHE=/home/work/jaeyoon/.hf_cache/hub
+export HF_HOME="${HF_HOME:-$GFN_PO_DEFAULT_HF_CACHE}"
+export HUGGINGFACE_HUB_CACHE="${HUGGINGFACE_HUB_CACHE:-$HF_HOME/hub}"
 export PYTHONPATH="$SCRIPT_DIR:${PYTHONPATH:-}"
 export NCCL_P2P_DISABLE=1
 export PYTORCH_CUDA_ALLOC_CONF=expandable_segments:True
@@ -54,9 +55,9 @@ run_worker() {
     CUDA_VISIBLE_DEVICES="${cuda_devices}" python -m junmo.train \
       --task "$task_mode" \
       --dataset "$dataset_name" \
-      --agent_model /home/work/jaeyoon/models/Meta-Llama-3-8B-Instruct \
-      --eval_model /home/work/jaeyoon/models/Meta-Llama-3-8B-Instruct \
-      --cache_dir /home/work/jaeyoon/.hf_cache \
+      --agent_model "${AGENT_MODEL:-$GFN_PO_DEFAULT_MODEL_DIR}" \
+      --eval_model "${EVAL_MODEL:-$GFN_PO_DEFAULT_MODEL_DIR}" \
+      --cache_dir "${CACHE_DIR:-$GFN_PO_DEFAULT_HF_CACHE}" \
       --agent_device cuda:1 \
       --tp_size 1 \
       --eval_gpu_memory_utilization 0.9 \

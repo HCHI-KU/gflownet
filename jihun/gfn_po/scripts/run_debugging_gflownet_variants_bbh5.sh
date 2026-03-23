@@ -3,6 +3,7 @@ set -euo pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 REPO_DIR="$(cd "$SCRIPT_DIR/.." && pwd)"
+source "$SCRIPT_DIR/source_workspace_env.sh"
 cd "$REPO_DIR"
 
 RUN_TS="${RUN_TS:-$(date +%Y%m%d_%H%M%S)}"
@@ -11,9 +12,9 @@ mkdir -p "$REPO_DIR/logs"
 
 export CUDA_VISIBLE_DEVICES="${CUDA_VISIBLE_DEVICES:-0,1}"
 export AGENT_DEVICE="${AGENT_DEVICE:-cuda:1}"
-export AGENT_MODEL="${AGENT_MODEL:-/home/work/GFlowPO/models/Meta-Llama-3-8B-Instruct}"
-export EVAL_MODEL="${EVAL_MODEL:-/home/work/GFlowPO/models/Meta-Llama-3-8B-Instruct}"
-export CACHE_DIR="${CACHE_DIR:-$HOME/.cache/huggingface}"
+export AGENT_MODEL="${AGENT_MODEL:-$GFN_PO_DEFAULT_MODEL_DIR}"
+export EVAL_MODEL="${EVAL_MODEL:-$GFN_PO_DEFAULT_MODEL_DIR}"
+export CACHE_DIR="${CACHE_DIR:-$GFN_PO_DEFAULT_HF_CACHE}"
 export WANDB_MODE="${WANDB_MODE:-online}"
 export WANDB_PROJECT="${WANDB_PROJECT:-debugging_gflownet_bbh5_variants}"
 export TRAIN_STEPS="${TRAIN_STEPS:-200}"

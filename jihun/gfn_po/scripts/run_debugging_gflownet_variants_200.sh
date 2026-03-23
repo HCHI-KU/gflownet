@@ -3,6 +3,7 @@ set -euo pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 REPO_DIR="$(cd "$SCRIPT_DIR/.." && pwd)"
+source "$SCRIPT_DIR/source_workspace_env.sh"
 cd "$REPO_DIR"
 
 export PYTHONPATH="$REPO_DIR:${PYTHONPATH:-}"
@@ -21,9 +22,9 @@ WANDB_MODE="${WANDB_MODE:-online}"
 WANDB_PROJECT="${WANDB_PROJECT:-debugging_gflownet}"
 SAVE_DIR="${SAVE_DIR:-$REPO_DIR/debugging_gflownet_runs}"
 
-AGENT_MODEL="${AGENT_MODEL:-meta-llama/Meta-Llama-3-8B-Instruct}"
-EVAL_MODEL="${EVAL_MODEL:-meta-llama/Meta-Llama-3-8B-Instruct}"
-CACHE_DIR="${CACHE_DIR:-$HOME/.cache/huggingface}"
+AGENT_MODEL="${AGENT_MODEL:-$GFN_PO_DEFAULT_MODEL_DIR}"
+EVAL_MODEL="${EVAL_MODEL:-$GFN_PO_DEFAULT_MODEL_DIR}"
+CACHE_DIR="${CACHE_DIR:-$GFN_PO_DEFAULT_HF_CACHE}"
 
 BATCH_SIZE="${BATCH_SIZE:-4}"
 GRAD_ACC_STEPS="${GRAD_ACC_STEPS:-4}"

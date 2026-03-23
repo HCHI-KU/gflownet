@@ -3,14 +3,15 @@ set -euo pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 REPO_DIR="$(cd "$SCRIPT_DIR/.." && pwd)"
+source "$SCRIPT_DIR/source_workspace_env.sh"
 cd "$REPO_DIR"
 
 export PYTHONPATH="$REPO_DIR:${PYTHONPATH:-}"
 export VLLM_USE_V1="${VLLM_USE_V1:-0}"
 
-AGENT_MODEL="${AGENT_MODEL:-/home/work/GFlowPO/models/Meta-Llama-3-8B-Instruct}"
-EVAL_MODEL="${EVAL_MODEL:-/home/work/GFlowPO/models/Meta-Llama-3-8B-Instruct}"
-CACHE_DIR="${CACHE_DIR:-/home/work/GFlowPO/jihun/.cache/huggingface}"
+AGENT_MODEL="${AGENT_MODEL:-$GFN_PO_DEFAULT_MODEL_DIR}"
+EVAL_MODEL="${EVAL_MODEL:-$GFN_PO_DEFAULT_MODEL_DIR}"
+CACHE_DIR="${CACHE_DIR:-$GFN_PO_DEFAULT_HF_CACHE}"
 EXP_NAME="${EXP_NAME:-gflowpo_object_counting_refined_gamma1}"
 INIT_QUEUE_PROMPT="${INIT_QUEUE_PROMPT:-Count the number of items that match the category asked in the question.}"
 DEFAULT_INIT_META_PROMPT=$'I gave a friend an instruction and three inputs. The friend read the instruction and wrote an output for every one of the inputs. Infer a single concise instruction that explains the outputs. Here are the input-output pairs:\n'
