@@ -70,14 +70,21 @@ cd /path/to/jihun/gfn_po
 bash scripts/run_v1_log_prior_followup_local_tmux.sh
 ```
 
-- local tmux queue: `movie_recommendation`, `hyperbaton`
-- B200 권장 heavy task: `causal_judgement`, `tracking_shuffled_objects_five_objects`
+- local tmux queue 기본값: `object_counting`
+- B200 권장 queue 기본값: `causal_judgement`, `movie_recommendation`, `hyperbaton`, `tracking_shuffled_objects_five_objects`
 
-B200에서 heavy task 두 개를 순차 실행하려면:
+로컬에서 `object_counting`을 먼저 올리고, 나머지 4개를 b200에서 돌리려면:
 
 ```bash
 cd /path/to/jihun/gfn_po
-TASKS="causal_judgement tracking_shuffled_objects_five_objects" \
+B200_HOST=<b200-host> bash scripts/run_v1_log_prior_bbh5_split.sh
+```
+
+B200에서 나머지 4개 task를 순차 실행하려면:
+
+```bash
+cd /path/to/jihun/gfn_po
+TASKS="causal_judgement movie_recommendation hyperbaton tracking_shuffled_objects_five_objects" \
 AGENT_MODEL=/path/to/Meta-Llama-3-8B-Instruct \
 EVAL_MODEL=/path/to/Meta-Llama-3-8B-Instruct \
 bash scripts/run_v1_log_prior_b200_heavy.sh

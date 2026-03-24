@@ -870,12 +870,12 @@ def build_arg_parser() -> argparse.ArgumentParser:
     parser.add_argument("--agent_device", type=str, default="cuda:0")
     parser.add_argument("--tp_size", type=int, default=1)
     parser.add_argument("--eval_gpu_memory_utilization", type=float, default=None)
-    parser.add_argument("--eval_max_num_seqs", type=int, default=32)
+    parser.add_argument("--eval_max_num_seqs", type=int, default=64)
     parser.add_argument("--eval_max_seq_len_to_capture", type=int, default=1024)
 
     parser.add_argument("--seed", type=int, default=42)
     parser.add_argument("--log_every", type=int, default=10)
-    parser.add_argument("--export_every", type=int, default=10)
+    parser.add_argument("--export_every", type=int, default=100)
     parser.add_argument("--test_eval_period", type=int, default=0)
     parser.add_argument("--save_top_k", type=int, default=5)
 

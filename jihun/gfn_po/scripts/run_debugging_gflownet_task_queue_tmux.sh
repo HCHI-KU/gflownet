@@ -35,7 +35,7 @@ run_worker() {
   local wait_session="${WAIT_SESSION:-}"
   local wait_pid="${WAIT_PID:-}"
   local wait_poll_seconds="${WAIT_POLL_SECONDS:-60}"
-  local queue_tasks="${QUEUE_TASKS:-causal_judgement movie_recommendation hyperbaton tracking_shuffled_objects_five_objects}"
+  local queue_tasks="${QUEUE_TASKS:-object_counting causal_judgement movie_recommendation hyperbaton tracking_shuffled_objects_five_objects}"
   local queue_tag="${QUEUE_TAG:-$(date +%Y%m%d_%H%M%S)}"
 
   local agent_model="${AGENT_MODEL:-$DEFAULT_MODEL}"
@@ -66,7 +66,7 @@ run_worker() {
   local num_example="${NUM_EXAMPLE:-5}"
   local fewshot_strategy="${FEWSHOT_STRATEGY:-random}"
   local fewshot_seed="${FEWSHOT_SEED:-42}"
-  local fewshot_resample_each_step="${FEWSHOT_RESAMPLE_EACH_STEP:-1}"
+  local fewshot_resample_each_step="${FEWSHOT_RESAMPLE_EACH_STEP:-0}"
   local data_root="${DATA_ROOT:-$DEFAULT_DATA_ROOT}"
   local conversation_template="${CONVERSATION_TEMPLATE:-llama-3}"
 
@@ -82,12 +82,12 @@ run_worker() {
   local agent_device="${AGENT_DEVICE:-cuda:1}"
   local tp_size="${TP_SIZE:-1}"
   local eval_gpu_memory_utilization="${EVAL_GPU_MEMORY_UTILIZATION:-0.9}"
-  local eval_max_num_seqs="${EVAL_MAX_NUM_SEQS:-8}"
+  local eval_max_num_seqs="${EVAL_MAX_NUM_SEQS:-64}"
   local eval_max_seq_len_to_capture="${EVAL_MAX_SEQ_LEN_TO_CAPTURE:-3072}"
   local seed="${SEED:-2}"
   local log_every="${LOG_EVERY:-10}"
-  local export_every="${EXPORT_EVERY:-10}"
-  local test_eval_period="${TEST_EVAL_PERIOD:-10}"
+  local export_every="${EXPORT_EVERY:-100}"
+  local test_eval_period="${TEST_EVAL_PERIOD:-0}"
   local save_top_k="${SAVE_TOP_K:-5}"
 
   local gamma_tag="${gamma//./p}"
@@ -192,7 +192,7 @@ launch_tmux() {
      WAIT_SESSION='${WAIT_SESSION:-}' \
      WAIT_PID='${WAIT_PID:-}' \
      WAIT_POLL_SECONDS='${WAIT_POLL_SECONDS:-60}' \
-     QUEUE_TASKS='${QUEUE_TASKS:-causal_judgement movie_recommendation hyperbaton tracking_shuffled_objects_five_objects}' \
+     QUEUE_TASKS='${QUEUE_TASKS:-object_counting causal_judgement movie_recommendation hyperbaton tracking_shuffled_objects_five_objects}' \
      QUEUE_TAG='${QUEUE_TAG:-$(date +%Y%m%d_%H%M%S)}' \
      AGENT_MODEL='${AGENT_MODEL:-$DEFAULT_MODEL}' \
      EVAL_MODEL='${EVAL_MODEL:-$DEFAULT_MODEL}' \
@@ -220,7 +220,7 @@ launch_tmux() {
      NUM_EXAMPLE='${NUM_EXAMPLE:-5}' \
      FEWSHOT_STRATEGY='${FEWSHOT_STRATEGY:-random}' \
      FEWSHOT_SEED='${FEWSHOT_SEED:-42}' \
-     FEWSHOT_RESAMPLE_EACH_STEP='${FEWSHOT_RESAMPLE_EACH_STEP:-1}' \
+     FEWSHOT_RESAMPLE_EACH_STEP='${FEWSHOT_RESAMPLE_EACH_STEP:-0}' \
      DATA_ROOT='${DATA_ROOT:-$DEFAULT_DATA_ROOT}' \
      CONVERSATION_TEMPLATE='${CONVERSATION_TEMPLATE:-llama-3}' \
      BBH_TRAIN_SIZE='${BBH_TRAIN_SIZE:-50}' \
@@ -234,12 +234,12 @@ launch_tmux() {
      AGENT_DEVICE='${AGENT_DEVICE:-cuda:1}' \
      TP_SIZE='${TP_SIZE:-1}' \
      EVAL_GPU_MEMORY_UTILIZATION='${EVAL_GPU_MEMORY_UTILIZATION:-0.9}' \
-     EVAL_MAX_NUM_SEQS='${EVAL_MAX_NUM_SEQS:-8}' \
+     EVAL_MAX_NUM_SEQS='${EVAL_MAX_NUM_SEQS:-64}' \
      EVAL_MAX_SEQ_LEN_TO_CAPTURE='${EVAL_MAX_SEQ_LEN_TO_CAPTURE:-3072}' \
      SEED='${SEED:-2}' \
      LOG_EVERY='${LOG_EVERY:-10}' \
-     EXPORT_EVERY='${EXPORT_EVERY:-10}' \
-     TEST_EVAL_PERIOD='${TEST_EVAL_PERIOD:-10}' \
+     EXPORT_EVERY='${EXPORT_EVERY:-100}' \
+     TEST_EVAL_PERIOD='${TEST_EVAL_PERIOD:-0}' \
      SAVE_TOP_K='${SAVE_TOP_K:-5}' \
      bash '$SCRIPT_DIR/run_debugging_gflownet_task_queue_tmux.sh' --worker 2>&1 | tee '$queue_log'"
 
